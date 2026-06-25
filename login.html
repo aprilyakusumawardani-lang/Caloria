@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Caloria Masuk</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="phone-container">
+    <div class="notch"></div>
+    <div id="login-screen" class="screen active">
+        <div class="login-header card-header">
+            <div>
+                <h1>Caloria</h1>
+                <p class="page-subtitle">Lacak makananmu, jaga keseimbangan hidup</p>
+            </div>
+            <div class="ai-badge">
+                <div class="ai-badge-dot"></div>
+                <span>AI</span>
+            </div>
+        </div>
+        <div class="form-group">
+            <label>Email</label>
+            <input type="email" id="email" placeholder="email@example.com" />
+        </div>
+        <div class="form-group">
+            <label>Password</label>
+            <input type="password" id="password" placeholder="••••••" />
+        </div>
+        <button class="btn-primary" onclick="handleLogin()">Masuk</button>
+        <button class="btn-secondary" onclick="window.location.href='signup.html'">Daftar</button>
+        <div class="auth-footer">
+            <span>Belum punya akun?</span>
+            <button class="auth-link" onclick="window.location.href='signup.html'">Buat akun</button>
+        </div>
+    </div>
+</div>
+<script>
+    function formatNameFromEmail(email) {
+        const parts = email.split('@')[0].split(/[._]/).filter(Boolean);
+        return parts.map(part => part.charAt(0).toUpperCase() + part.slice(1)).join(' ');
+    }
+
+    function handleLogin() {
+        const email = document.getElementById('email').value.trim();
+        const pass = document.getElementById('password').value.trim();
+
+        if (email === 'aprilya@gmail.com' && pass === '123456') {
+            localStorage.setItem('userEmail', email);
+            localStorage.setItem('userPassword', pass);
+            localStorage.setItem('sessionActive', '1');
+            if (!localStorage.getItem('userName')) {
+                localStorage.setItem('userName', formatNameFromEmail(email) || 'Pengguna');
+            }
+            window.location.href = localStorage.getItem('userBMI') ? 'app.html' : 'index.html';
+            return;
+        }
+
+        const storedEmail = localStorage.getItem('userEmail');
+        const storedPassword = localStorage.getItem('userPassword');
+
+        if (!storedEmail || !storedPassword) {
+            alert('Akun tidak ditemukan. Silakan daftar terlebih dahulu.');
+            return;
+        }
+
+        if (email !== storedEmail || pass !== storedPassword) {
+            alert('Email atau password salah.');
+            return;
+        }
+
+        localStorage.setItem('userEmail', email);
+        localStorage.setItem('userPassword', pass);
+        // mark session active
+        localStorage.setItem('sessionActive', '1');
+        if (!localStorage.getItem('userName')) {
+            localStorage.setItem('userName', formatNameFromEmail(email) || 'Pengguna');
+        }
+
+        window.location.href = localStorage.getItem('userBMI') ? 'app.html' : 'index.html';
+    }
+</script>
+</body>
+</html>

@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Caloria Kalkulator BMI</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="phone-container">
+    <div class="screen active bmi-screen">
+        <div class="page-header card-header">
+            <div>
+                <div class="small-label">Caloria AI</div>
+                <div class="header-title">Berapa tinggi badan Anda?</div>
+            </div>
+            <div class="ai-badge">
+                <div class="ai-badge-dot"></div>
+                <span>AI</span>
+            </div>
+        </div>
+        <p class="page-subtitle">Gunakan pemilih di bawah untuk memasukkan tinggi dan berat badan.</p>
+
+        <div class="picker-group">
+            <label class="bmi-label">Height</label>
+            <div class="picker-box">
+                <button type="button" class="picker-btn" onclick="changePicker('height', -1)">◀</button>
+                <div class="picker-wheel">
+                    <div class="picker-value top" id="height-top">169</div>
+                    <div class="picker-value current" id="height-current">170</div>
+                    <div class="picker-value bottom" id="height-bottom">171</div>
+                </div>
+                <button type="button" class="picker-btn" onclick="changePicker('height', 1)">▶</button>
+            </div>
+            <div class="picker-unit">cm</div>
+            <input id="height-input" type="hidden" />
+        </div>
+        <div class="picker-group">
+            <label class="bmi-label">Berapa berat badan Anda saat ini?</label>
+            <div class="picker-box">
+                <button type="button" class="picker-btn" onclick="changePicker('weight', -1)">◀</button>
+                <div class="picker-wheel">
+                    <div class="picker-value top" id="weight-top">55</div>
+                    <div class="picker-value current" id="weight-current">56</div>
+                    <div class="picker-value bottom" id="weight-bottom">57</div>
+                </div>
+                <button type="button" class="picker-btn" onclick="changePicker('weight', 1)">▶</button>
+            </div>
+            <div class="picker-unit">kg</div>
+            <input id="weight-input" type="hidden" />
+        </div>
+
+        <button class="btn-primary" onclick="calculateBMI()">Hitung BMI</button>
+
+        <div id="bmi-result-card" class="result-card" style="display:none; margin-top: 24px;">
+            <div class="result-row">
+                <span class="result-label">BMI</span>
+                <span id="bmi-value" class="result-value">0.0</span>
+            </div>
+            <div class="result-row">
+                <span class="result-label">Status</span>
+                <span id="bmi-status" class="result-value">-</span>
+            </div>
+            <div class="result-row">
+                <span class="result-label">Obesity Risk Score</span>
+                <span id="obesity-score" class="result-value">-</span>
+            </div>
+            <div class="result-row">
+                <span class="result-label">Penjelasan Risiko</span>
+                <span id="obesity-explanation" class="result-value" style="font-weight: normal; max-width: 220px; text-align: right; font-size: 13px;">-</span>
+            </div>
+            <div class="result-row">
+                <span class="result-label">Daily Calories</span>
+                <span id="calorie-target" class="result-value">0 kkal</span>
+            </div>
+            <div class="recommendation-card">
+                <div class="recommendation-label">AI Recommendation</div>
+                <p id="calorie-advice" class="recommendation-text"></p>
+            </div>
+        </div>
+
+        <button id="continue-login" class="btn-secondary" style="display:none; margin-top: 16px;" onclick="goToLogin()">Masuk</button>
+        <button id="continue-signup" class="btn-secondary" style="display:none; margin-top: 10px;" onclick="goToSignup()">Daftar</button>
+    </div>
+</div>
+<script>
+    function getBMIStatus(bmi) {
+        if (bmi < 18.5) return 'Kurus';
+        if (bmi < 25) return 'Normal';
+        if (bmi < 30) return 'Kelebihan berat badan';
+        return 'Obesitas';
+    }
+
+    function getCalorieRecommendation(bmi) {
+        if (bmi < 18.5) {
+            return {
+                target: 2500,
+                label: 'Rencana penambahan berat',
+                advice: 'BMI Anda rendah. Tingkatkan asupan kalori dengan makanan kaya protein dan karbohidrat sehat.'
+            };
+        }
+        if (bmi < 25) {
+            return {
+                target: 2117,
+                label: 'Rencana pemeliharaan',
+                advice: 'BMI Anda berada dalam kisaran sehat. Pertahankan pola makan seimbang dan gaya hidup aktif.'
+            };
+        }
+        if (bmi < 30) {
+            return {
+                target: 1900,
+                label: 'Pengurangan kalori ringan',
+                advice: 'BMI Anda di atas normal. Kurangi porsi sedikit dan pilih protein tanpa lemak serta sayuran.'
+            };
+        }
+        return {
+            target: 1700,
+            label: 'Rencana penurunan berat',
+            advice: 'BMI Anda pada kategori obesitas. Kurangi kalori, batasi karbohidrat olahan, dan tingkatkan sayuran serta protein.'
+        };
+    }
+
+    function getObesityRiskScore(bmi) {
+        if (bmi < 18.5) return { score: 10, label: 'Risiko rendah', explanation: 'Risiko obesitas rendah karena BMI Anda di bawah kisaran normal (18,5 - 24,9).' };
+        if (bmi < 25) return { score: 20, label: 'Risiko rendah', explanation: 'BMI normal berarti risiko obesitas tetap rendah, pertahankan pola makan seimbang.' };
+        if (bmi < 30) return { score: 55, label: 'Risiko sedang', explanation: 'Anda berada di kategori overweight dengan seharusnya BMI kisaran normal (18,5 - 24,9), perlu sedikit pengaturan diet dan olahraga.' };
+        return { score: 80, label: 'Risiko tinggi', explanation: 'BMI di kategori obesitas dengan seharusnya BMI kisaran normal (18,5 - 24,9). Segera perbaiki pola makan dan tambahkan aktivitas fisik.' };
+    }
+
+    const pickerState = {
+        height: 170,
+        weight: 56
+    };
+
+    function initBMIPicker() {
+        renderPicker('height');
+        renderPicker('weight');
+    }
+
+    function changePicker(type, delta) {
+        if (!pickerState[type]) return;
+        const min = type === 'height' ? 100 : 30;
+        const max = type === 'height' ? 230 : 200;
+        pickerState[type] = Math.min(max, Math.max(min, pickerState[type] + delta));
+        renderPicker(type);
+    }
+
+    function renderPicker(type) {
+        const value = pickerState[type];
+        document.getElementById(`${type}-top`).textContent = value - 1;
+        document.getElementById(`${type}-current`).textContent = value;
+        document.getElementById(`${type}-bottom`).textContent = value + 1;
+        document.getElementById(`${type}-input`).value = value;
+    }
+
+    function calculateBMI() {
+        const height = parseFloat(document.getElementById('height-input').value);
+        const weight = parseFloat(document.getElementById('weight-input').value);
+        if (!height || !weight) {
+            alert('Silakan masukkan tinggi dan berat badan.');
+            return;
+        }
+
+        const bmi = weight / ((height / 100) ** 2);
+        const status = getBMIStatus(bmi);
+        const recommendation = getCalorieRecommendation(bmi);
+
+        localStorage.setItem('userHeight', height);
+        localStorage.setItem('userWeight', weight);
+        const risk = getObesityRiskScore(bmi);
+
+        localStorage.setItem('userBMI', bmi.toFixed(1));
+        localStorage.setItem('userBMIStatus', status);
+        localStorage.setItem('userObesityScore', risk.score);
+        localStorage.setItem('userObesityRiskLabel', risk.label);
+        localStorage.setItem('userObesityRiskExplanation', risk.explanation);
+        localStorage.setItem('userCaloriesTarget', recommendation.target);
+        localStorage.setItem('userCalorieAdvice', recommendation.advice);
+        localStorage.setItem('userDietPlan', recommendation.label);
+        document.getElementById('bmi-value').textContent = bmi.toFixed(1);
+        document.getElementById('bmi-status').textContent = status;
+        document.getElementById('obesity-score').textContent = `${risk.score} / 100`;
+        document.getElementById('obesity-explanation').textContent = risk.explanation;
+        document.getElementById('calorie-target').textContent = recommendation.target + ' kkal';
+        document.getElementById('calorie-advice').textContent = recommendation.advice;
+        document.getElementById('bmi-result-card').style.display = 'block';
+        document.getElementById('continue-login').style.display = 'block';
+        document.getElementById('continue-signup').style.display = 'block';
+    }
+
+    function goToLogin() {
+        window.location.href = 'login.html';
+    }
+
+    function goToSignup() {
+        window.location.href = 'signup.html';
+    }
+
+    window.addEventListener('load', function () {
+        const storedHeight = localStorage.getItem('userHeight');
+        const storedWeight = localStorage.getItem('userWeight');
+
+        if (storedHeight) {
+            pickerState.height = parseFloat(storedHeight);
+        }
+        if (storedWeight) {
+            pickerState.weight = parseFloat(storedWeight);
+        }
+
+        initBMIPicker();
+
+    });
+</script>
+</body>
+</html>

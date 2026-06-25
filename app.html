@@ -1,0 +1,1159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Caloria App</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="phone-container">
+    <div class="notch"></div>
+
+    <div id="dashboard-screen" class="screen active">
+        <div class="dashboard-header">
+            <div class="app-brand">
+                <div class="brand-icon">C</div>
+                <div>
+                    <div class="brand-name">Caloria</div>
+                    <div class="brand-subtitle">AI Nutri Assistant</div>
+                </div>
+            </div>
+            <div class="ai-illustration">
+                <span class="ai-label">AI</span>
+            </div>
+        </div>
+        <div class="header-title">Hari Ini</div>
+        <div class="dashboard-top-card">
+            <div class="dashboard-top-grid">
+                <div class="dashboard-top-item">
+                    <div class="info-label">Target Harian</div>
+                    <div id="dashboard-target" class="info-value">2,117 kkal</div>
+                </div>
+                <div class="dashboard-top-item">
+                    <div class="info-label">Rekomendasi</div>
+                    <div id="dashboard-recommendation" class="info-value">Rencana pemeliharaan</div>
+                </div>
+            </div>
+            <div class="dashboard-edit-row">
+                <div class="dashboard-edit-item">
+                    <label for="dashboard-height">Tinggi badan</label>
+                    <input id="dashboard-height" type="number" min="100" max="230" onchange="handleProfileFieldChange()" />
+                </div>
+                <div class="dashboard-edit-item">
+                    <label for="dashboard-weight">Berat badan</label>
+                    <input id="dashboard-weight" type="number" min="30" max="200" onchange="handleProfileFieldChange()" />
+                </div>
+            </div>
+            <div id="risk-notification" class="risk-notification" onclick="toggleRiskExplanation()">
+                <div class="risk-heading">Obesity Risk: <span id="dashboard-risk-label">-</span></div>
+                <div id="risk-details" class="risk-details">Klik untuk melihat penjelasan risiko.</div>
+            </div>
+            <div class="risk-score-panel">
+                <div class="risk-score-top">
+                    <div>
+                        <div class="info-label">Early Warning Obesity</div>
+                        <div id="early-warning-title" class="risk-score-title">Memantau pola hari ini</div>
+                    </div>
+                    <div id="risk-score-number" class="risk-score-number">0</div>
+                </div>
+                <div class="risk-score-track">
+                    <div id="risk-score-fill" class="risk-score-fill"></div>
+                </div>
+                <div id="early-warning-message" class="risk-score-message">Skor dihitung dari BMI, kalori harian, dan aktivitas fisik.</div>
+            </div>
+        </div>
+        <div class="summary-card">
+            <div class="calorie-main">
+                <div class="stat-box">
+                    <div class="val" id="eaten-value">0</div>
+                    <div class="lbl">Dimakan</div>
+                </div>
+                <div class="progress-ring">
+                    <svg>
+                        <circle class="bg" cx="55" cy="55" r="45"></circle>
+                        <circle class="bar" cx="55" cy="55" r="45" id="progress-bar" style="stroke-dashoffset: 282;"></circle>
+                    </svg>
+                    <div class="ring-text">
+                        <div class="num" id="remaining-value">2,117</div>
+                        <div class="lbl">Sisa</div>
+                    </div>
+                </div>
+                <div class="stat-box">
+                    <div class="val" id="burned-value">0</div>
+                    <div class="lbl">Terbakar</div>
+                </div>
+            </div>
+
+            <div class="macro-container">
+                <div class="macro-item">
+                    <div class="macro-label">Karbo</div>
+                    <div class="macro-bar-bg"><div id="carbs-bar" class="macro-bar" style="width: 0%; background-color: #F5A623;"></div></div>
+                    <div id="carbs-value" class="macro-label" style="font-weight: bold; color:#101B2D;">0 / 258 g</div>
+                </div>
+                <div class="macro-item">
+                    <div class="macro-label">Protein</div>
+                    <div class="macro-bar-bg"><div id="protein-bar" class="macro-bar" style="width: 0%; background-color: #FF6B57;"></div></div>
+                    <div id="protein-value" class="macro-label" style="font-weight: bold; color:#101B2D;">0 / 103 g</div>
+                </div>
+                <div class="macro-item">
+                    <div class="macro-label">Lemak</div>
+                    <div class="macro-bar-bg"><div id="fat-bar" class="macro-bar" style="width: 0%; background-color: #6D5DF6;"></div></div>
+                    <div id="fat-value" class="macro-label" style="font-weight: bold; color:#101B2D;">0 / 68 g</div>
+                </div>
+            </div>
+        </div>
+
+        <div id="meal-list"></div>
+
+        <div id="coach-card" class="recommendation-card coach-card">
+            <div class="recommendation-label">AI Behavioral Coach</div>
+            <div id="coach-message" class="coach-message">Masukkan makanan dan aktivitas untuk menerima motivasi harian.</div>
+            <div class="coach-actions">
+                <button class="btn-small" onclick="generateBehaviorCoach()">Motivasi Baru</button>
+                <button class="btn-small outline" onclick="markCoachActionDone()">Saya lakukan</button>
+            </div>
+        </div>
+
+        <div class="recommendation-card">
+            <div class="recommendation-label">Rekomendasi Aktivitas Harian</div>
+            <div id="activity-recommendation-list" class="activity-recommendation-list"></div>
+            <button class="btn-secondary" onclick="openActivityDetail()">+ Tambah Aktivitas Manual</button>
+        </div>
+
+        <div class="recommendation-card impact-card" style="margin-top: 16px;">
+            <div class="recommendation-label">Target Dampak 6 Bulan</div>
+            <div class="impact-grid">
+                <div class="impact-item">
+                    <strong id="impact-sugar-value">-20%</strong>
+                    <span id="impact-sugar-label">Konsumsi gula dan makanan tinggi kalori</span>
+                </div>
+                <div class="impact-item">
+                    <strong id="impact-activity-value">+30%</strong>
+                    <span id="impact-activity-label">Durasi aktivitas fisik mingguan</span>
+                </div>
+                <div class="impact-item">
+                    <strong id="impact-bmi-value">-5%</strong>
+                    <span id="impact-bmi-label">Rata-rata IMT pengguna overweight</span>
+                </div>
+            </div>
+        </div>
+
+        <div id="today-activity-log" class="recommendation-card" style="margin-top: 16px;">
+            <div class="recommendation-label">Log Aktivitas Hari Ini</div>
+            <div id="activity-log" class="activity-log"></div>
+        </div>
+
+        <button id="analysis-button" class="btn-primary" style="margin-top: 15px; display: none;" onclick="toggleModal(true)">🧑‍⚕️ Analisis Nutrisionis</button>
+    </div>
+
+    <div id="history-screen" class="screen">
+        <div class="header-title">Riwayat</div>
+        <p style="color: var(--text-muted); margin-bottom: 12px;">Riwayat makanan dan aktivitas hari sebelumnya disimpan otomatis.</p>
+        <div id="history-list" class="history-list"></div>
+    </div>
+
+    <div id="meal-detail-screen" class="screen">
+        <div class="detail-header">
+            <button class="detail-back" onclick="closeMealDetail()">←</button>
+            <div id="detail-title" class="detail-title">Makanan</div>
+        </div>
+        <div class="detail-body">
+            <div class="detail-row">
+                <span class="detail-label">Nama makanan</span>
+                <input id="detail-food" type="text" placeholder="mis. Nasi matang" />
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Porsi</span>
+                <input id="detail-servings" type="number" min="1" value="1" />
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Pindai foto makanan</span>
+                <div class="scanner-card">
+                    <label class="scanner-button" for="meal-photo-input">📷 Pindai Foto</label>
+                    <input id="meal-photo-input" type="file" accept="image/*" capture="environment" onchange="handleMealPhoto(event)" />
+                    <div id="meal-photo-preview" class="photo-preview"></div>
+                    <div id="photo-estimate" class="photo-estimate">Scan foto makanan untuk memperkirakan kalori.</div>
+                    <div class="recognition-note">
+                        AI memakai simulasi computer vision: kualitas foto, estimasi porsi, dan koreksi bahan tetap ditampilkan agar hasil lebih realistis.
+                    </div>
+                </div>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Makanan yang ingin anda tambahkan</span>
+                <div id="ingredient-list" class="ingredient-list"></div>
+                <button class="btn-secondary" onclick="addIngredientRow()">+ Tambah bahan baru</button>
+            </div>
+            <button class="btn-primary" onclick="confirmMeal()">Simpan</button>
+        </div>
+    </div>
+
+    <div id="profile-screen" class="screen">
+        <div class="header-title">Profil</div>
+        <div class="profile-header">
+            <div class="avatar">👤</div>
+            <h3 id="profile-name" style="margin-top: 8px;">Budi Setiawan</h3>
+            <p id="profile-email" style="color: var(--text-muted); font-size: 14px;">budi.setiawan@email.com</p>
+        </div>
+
+        <div class="profile-info-row"><span class="lbl">BMI</span><span id="profile-bmi" class="val">0.0</span></div>
+        <div class="profile-info-row"><span class="lbl">Skor Obesitas</span><span id="profile-obesity-score" class="val">-</span></div>
+        <div class="profile-info-row"><span class="lbl">Risiko Obesitas</span><span id="profile-obesity-risk" class="val" style="color: var(--primary);">-</span></div>
+        <div class="profile-info-row"><span class="lbl">Hari Risiko Tinggi</span><span id="profile-high-risk-days" class="val">0 hari</span></div>
+        <div class="profile-info-row"><span class="lbl">Aksi Coach</span><span id="profile-coach-actions" class="val">0 kali</span></div>
+        <div class="profile-info-row"><span class="lbl">Target Harian</span><span id="profile-target" class="val">2,117 kkal</span></div>
+        <div class="profile-info-row"><span class="lbl">Berat Badan</span><span id="profile-weight" class="val">0 kg</span></div>
+        <div class="profile-info-row"><span class="lbl">Tinggi Badan</span><span id="profile-height" class="val">0 cm</span></div>
+        <div class="profile-info-row"><span class="lbl">Rekomendasi</span><span id="profile-recommendation" class="val" style="color: var(--primary);">-</span></div>
+
+        <button class="btn-logout" onclick="handleLogout()">Log Out</button>
+    </div>
+
+    <div id="nutritionist-modal" class="modal-overlay" onclick="toggleModal(false)">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <div class="modal-title">🧑‍⚕️ Catatan Nutrisionis Anda</div>
+            <div id="analysis-content" class="modal-body">
+                <p style="color:#666;">Masukkan makanan terlebih dahulu untuk melihat analisis nutrisi yang disesuaikan.</p>
+            </div>
+            <button class="btn-close-modal" onclick="toggleModal(false)">Tutup</button>
+        </div>
+    </div>
+
+    <div id="bottom-nav-bar" class="bottom-nav">
+        <div id="nav-today" class="nav-item active" onclick="switchScreen('dashboard')">
+            <span style="display:block; font-size: 18px;">📅</span>Hari Ini
+        </div>
+        <div id="nav-history" class="nav-item" onclick="switchScreen('history')">
+            <span style="display:block; font-size: 18px;">🕒</span>Riwayat
+        </div>
+        <div id="nav-profile" class="nav-item" onclick="switchScreen('profile')">
+            <span style="display:block; font-size: 18px;">👤</span>Profil
+        </div>
+    </div>
+</div>
+
+<script>
+    function handleLogout() {
+        if (hasTodayProgress()) {
+            const saveProgress = confirm('Anda memiliki progres Hari Ini. Simpan progres sebagai riwayat sebelum keluar?\n\nPilih OK untuk menyimpan, Batal untuk membuang progres.');
+            if (saveProgress) {
+                shouldAutoArchiveOnExit = false;
+                archiveTodayProgress();
+            } else {
+                const discardProgress = confirm('Buang progres Hari Ini? Pilih OK untuk membuang, atau Batal untuk kembali ke aplikasi.');
+                if (discardProgress) {
+                    shouldAutoArchiveOnExit = false;
+                    discardTodayProgress();
+                } else {
+                    return;
+                }
+            }
+        }
+
+        // Keep stored credentials so account data (riwayat) remains available.
+        // Only clear the session marker so the user returns to the BMI start screen.
+        localStorage.removeItem('sessionActive');
+        localStorage.removeItem(`coachDone-${getTodayDate()}`);
+        window.location.href = 'index.html';
+    }
+
+    const mealCategories = [
+        { id: 'Breakfast', icon: '☕', color: '#efebe9', target: 635 },
+        { id: 'Lunch', icon: '🥪', color: '#ffe0b2', target: 847 },
+        { id: 'Dinner', icon: '🥗', color: '#c8e6c9', target: 529 },
+        { id: 'Snacks', icon: '🍎', color: '#ffcdd2', target: 106 }
+    ];
+
+    let mealState = [];
+    let currentMealCategory = null;
+    let currentMealImageEstimate = null;
+    let shouldAutoArchiveOnExit = true;
+
+    function getTodayDate() {
+        return new Date().toISOString().slice(0, 10);
+    }
+
+    function formatHistoryDate(dateString) {
+        const date = new Date(dateString);
+        if (isNaN(date)) {
+            return dateString.replace('T', ' ').slice(0, 16);
+        }
+        return new Intl.DateTimeFormat('id-ID', {
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        }).format(date);
+    }
+
+    function loadAllMealLogs() {
+        return JSON.parse(localStorage.getItem('userMealLogs') || '[]');
+    }
+
+    function loadTodayActivities() {
+        const today = getTodayDate();
+        return loadUserActivities().filter(item => item.date.slice(0, 10) === today && !item.archived);
+    }
+
+    function hasTodayProgress() {
+        return loadMealState().length > 0 || loadTodayActivities().length > 0;
+    }
+
+    function archiveTodayProgress() {
+        const today = getTodayDate();
+        const allMeals = loadAllMealLogs().map(item => {
+            if (item.date.slice(0, 10) === today && !item.archived) {
+                return { ...item, archived: true, savedAt: new Date().toISOString() };
+            }
+            return item;
+        });
+        saveAllMealLogs(allMeals);
+
+        const allActivities = loadUserActivities().map(item => {
+            if (item.date.slice(0, 10) === today && !item.archived) {
+                return { ...item, archived: true, savedAt: new Date().toISOString() };
+            }
+            return item;
+        });
+        saveUserActivities(allActivities);
+    }
+
+    function discardTodayProgress() {
+        const today = getTodayDate();
+        saveAllMealLogs(loadAllMealLogs().filter(item => !(item.date.slice(0, 10) === today && !item.archived)));
+        saveUserActivities(loadUserActivities().filter(item => !(item.date.slice(0, 10) === today && !item.archived)));
+    }
+
+    function saveAllMealLogs(logs) {
+        localStorage.setItem('userMealLogs', JSON.stringify(logs));
+    }
+
+    function loadMealState() {
+        const today = getTodayDate();
+        return loadAllMealLogs().filter(item => item.date.slice(0, 10) === today && !item.archived);
+    }
+
+    function addMealLog(meal) {
+        const logs = loadAllMealLogs();
+        logs.push(meal);
+        saveAllMealLogs(logs);
+    }
+
+    function switchScreen(screenName) {
+        document.getElementById('dashboard-screen').classList.remove('active');
+        document.getElementById('profile-screen').classList.remove('active');
+        document.getElementById('history-screen').classList.remove('active');
+        document.getElementById('meal-detail-screen').classList.remove('active');
+        document.getElementById('nav-today').classList.remove('active');
+        document.getElementById('nav-history').classList.remove('active');
+        document.getElementById('nav-profile').classList.remove('active');
+
+        if (screenName === 'dashboard') {
+            document.getElementById('dashboard-screen').classList.add('active');
+            document.getElementById('nav-today').classList.add('active');
+        } else if (screenName === 'history') {
+            document.getElementById('history-screen').classList.add('active');
+            document.getElementById('nav-history').classList.add('active');
+        } else if (screenName === 'profile') {
+            document.getElementById('profile-screen').classList.add('active');
+            document.getElementById('nav-profile').classList.add('active');
+        }
+    }
+
+    function toggleModal(show) {
+        const modal = document.getElementById('nutritionist-modal');
+        if (show) {
+            modal.classList.add('active');
+        } else {
+            modal.classList.remove('active');
+        }
+    }
+
+    function addIngredientRow(name = '', grams = '') {
+        const ingredientList = document.getElementById('ingredient-list');
+        const row = document.createElement('div');
+        row.className = 'ingredient-row';
+        row.innerHTML = `
+            <input class="ingredient-name" type="text" placeholder="Nama bahan" value="${name}" />
+            <input class="ingredient-grams" type="number" min="0" placeholder="gram" value="${grams}" />
+            <button class="ingredient-remove" onclick="removeIngredientRow(this)">×</button>
+        `;
+        ingredientList.appendChild(row);
+    }
+
+    function removeIngredientRow(button) {
+        button.closest('.ingredient-row').remove();
+    }
+
+    function handleMealPhoto(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const preview = document.getElementById('meal-photo-preview');
+            preview.style.backgroundImage = `url('${e.target.result}')`;
+            preview.classList.add('has-photo');
+        };
+        reader.readAsDataURL(file);
+
+        currentMealImageEstimate = estimateCaloriesFromPhoto(file);
+        document.getElementById('photo-estimate').textContent =
+            `Perkiraan AI: ${currentMealImageEstimate.calories} kkal • ${currentMealImageEstimate.carbs}g karbo • ${currentMealImageEstimate.protein}g protein • ${currentMealImageEstimate.fat}g lemak`;
+    }
+
+    function estimateCaloriesFromPhoto(file) {
+        const sizeKb = file.size / 1024;
+        const baseCalories = Math.round(Math.min(Math.max(sizeKb * 1.1, 120), 700));
+        const calories = Math.max(120, Math.min(baseCalories, 700));
+        const carbs = Math.round(calories * 0.5 / 4);
+        const protein = Math.round(calories * 0.2 / 4);
+        const fat = Math.round(calories * 0.1 / 9);
+        return { calories, carbs, protein, fat };
+    }
+
+    function legacyHandleMealPhoto(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const preview = document.getElementById('meal-photo-preview');
+            preview.style.backgroundImage = `url('${e.target.result}')`;
+            preview.classList.add('has-photo');
+        };
+        reader.readAsDataURL(file);
+
+        currentMealImageEstimate = estimateCaloriesFromPhoto(file);
+        document.getElementById('photo-estimate').textContent =
+            `Perkiraan AI: ${currentMealImageEstimate.foodName} - ${currentMealImageEstimate.calories} kkal | ${currentMealImageEstimate.carbs}g karbo | ${currentMealImageEstimate.protein}g protein | ${currentMealImageEstimate.fat}g lemak | keyakinan ${currentMealImageEstimate.confidence}%`;
+
+        const foodInput = document.getElementById('detail-food');
+        if (!foodInput.value.trim()) {
+            foodInput.value = currentMealImageEstimate.foodName;
+        }
+        renderDetectedIngredients(currentMealImageEstimate.ingredients);
+    }
+
+    function legacyEstimateCaloriesFromPhoto(file) {
+        const foodSamples = [
+            { foodName: 'Nasi ayam sayur', calories: 560, carbs: 72, protein: 28, fat: 16, ingredients: [['Nasi putih', 150], ['Ayam panggang', 85], ['Sayur hijau', 60]] },
+            { foodName: 'Gado-gado', calories: 430, carbs: 48, protein: 18, fat: 18, ingredients: [['Lontong', 90], ['Sayuran', 120], ['Saus kacang', 45]] },
+            { foodName: 'Nasi goreng telur', calories: 620, carbs: 78, protein: 20, fat: 24, ingredients: [['Nasi goreng', 220], ['Telur', 55], ['Minyak/bumbu', 20]] },
+            { foodName: 'Soto ayam', calories: 390, carbs: 42, protein: 24, fat: 12, ingredients: [['Kuah soto', 180], ['Ayam suwir', 65], ['Nasi/lontong', 80]] }
+        ];
+        const index = Math.abs(file.name.length + file.size) % foodSamples.length;
+        const sample = foodSamples[index];
+        const sizeFactor = Math.min(Math.max((file.size / 250000), 0.85), 1.2);
+        const confidence = Math.round(78 + (file.name.length % 15));
+        return {
+            foodName: sample.foodName,
+            calories: Math.round(sample.calories * sizeFactor),
+            carbs: Math.round(sample.carbs * sizeFactor),
+            protein: Math.round(sample.protein * sizeFactor),
+            fat: Math.round(sample.fat * sizeFactor),
+            confidence,
+            ingredients: sample.ingredients.map(([name, grams]) => [name, Math.round(grams * sizeFactor)])
+        };
+    }
+
+    function renderDetectedIngredients(ingredients = []) {
+        const ingredientList = document.getElementById('ingredient-list');
+        ingredientList.innerHTML = '';
+        ingredients.forEach(([name, grams]) => addIngredientRow(name, grams));
+    }
+
+    function renderMealCards() {
+        const mealList = document.getElementById('meal-list');
+        mealList.innerHTML = '';
+        mealCategories.forEach(category => {
+            const categoryMeals = mealState.filter(meal => meal.category === category.id);
+            const totalCalories = categoryMeals.reduce((sum, meal) => sum + meal.calories, 0);
+            const card = document.createElement('div');
+            card.className = 'meal-card';
+            card.innerHTML = `
+                <div class="meal-info">
+                    <div class="meal-icon" style="background-color: ${category.color};">${category.icon}</div>
+                    <div class="meal-det">
+                        <h4>${category.id}</h4>
+                        <p>${totalCalories} / ${category.target} Cal</p>
+                    </div>
+                </div>
+                <button class="btn-add" onclick="openMealDetail('${category.id}')">+</button>
+            `;
+            mealList.appendChild(card);
+        });
+    }
+
+    function updateDashboard() {
+        const eaten = mealState.reduce((sum, meal) => sum + meal.calories, 0);
+        const carbs = mealState.reduce((sum, meal) => sum + meal.carbs, 0);
+        const protein = mealState.reduce((sum, meal) => sum + meal.protein, 0);
+        const fat = mealState.reduce((sum, meal) => sum + meal.fat, 0);
+        const target = parseInt(localStorage.getItem('userCaloriesTarget'), 10) || 2117;
+        const remaining = Math.max(target - eaten, 0);
+
+        document.getElementById('eaten-value').textContent = eaten;
+        document.getElementById('remaining-value').textContent = remaining;
+        document.getElementById('burned-value').textContent = calculateBurnedCalories();
+
+        document.getElementById('carbs-value').textContent = `${carbs} / 258 g`;
+        document.getElementById('protein-value').textContent = `${protein} / 103 g`;
+        document.getElementById('fat-value').textContent = `${fat} / 68 g`;
+
+        document.getElementById('carbs-bar').style.width = `${Math.min((carbs / 258) * 100, 100)}%`;
+        document.getElementById('protein-bar').style.width = `${Math.min((protein / 103) * 100, 100)}%`;
+        document.getElementById('fat-bar').style.width = `${Math.min((fat / 68) * 100, 100)}%`;
+
+        const analysisButton = document.getElementById('analysis-button');
+        analysisButton.style.display = mealState.length > 0 ? 'block' : 'none';
+
+        const progressBar = document.getElementById('progress-bar');
+        const progressPercent = Math.min((eaten / target) * 282, 282);
+        progressBar.style.strokeDashoffset = 282 - progressPercent;
+
+        renderActivityRecommendations();
+        renderActivityLog();
+        renderHistory();
+        updateDashboardSummaryPanel();
+        updateSixMonthImpactTargets();
+        updateEarlyWarningPanel();
+        generateBehaviorCoach(false);
+        updateAnalysis();
+    }
+
+    function openMealDetail(mealName) {
+        currentMealCategory = mealName;
+        currentMealImageEstimate = null;
+        document.getElementById('dashboard-screen').classList.remove('active');
+        document.getElementById('meal-detail-screen').classList.add('active');
+        document.getElementById('detail-title').textContent = mealName;
+        document.getElementById('detail-food').value = '';
+        document.getElementById('detail-servings').value = 1;
+        document.getElementById('meal-photo-input').value = '';
+        const preview = document.getElementById('meal-photo-preview');
+        preview.style.backgroundImage = 'none';
+        preview.classList.remove('has-photo');
+        document.getElementById('photo-estimate').textContent = 'Scan foto makanan untuk memperkirakan kalori.';
+        const ingredientList = document.getElementById('ingredient-list');
+        ingredientList.innerHTML = '';
+        addIngredientRow();
+    }
+
+    function closeMealDetail() {
+        document.getElementById('meal-detail-screen').classList.remove('active');
+        document.getElementById('dashboard-screen').classList.add('active');
+    }
+
+    function openActivityDetail() {
+        const activity = prompt('Masukkan aktivitas harian:');
+        if (!activity) return;
+        const duration = prompt('Durasi dalam menit:');
+        const minutes = parseInt(duration, 10);
+        if (!minutes || minutes <= 0) {
+            alert('Masukkan durasi yang valid.');
+            return;
+        }
+        const calories = Math.round(minutes * 6);
+        const userActivities = loadUserActivities();
+        userActivities.push({ name: activity, minutes, calories, date: new Date().toISOString() });
+        saveUserActivities(userActivities);
+        updateDashboard();
+    }
+
+    function confirmMeal() {
+        const food = document.getElementById('detail-food').value.trim() || 'Meal item';
+        let calories;
+        let carbs;
+        let protein;
+        let fat;
+
+        if (currentMealImageEstimate) {
+            calories = currentMealImageEstimate.calories;
+            carbs = currentMealImageEstimate.carbs;
+            protein = currentMealImageEstimate.protein;
+            fat = currentMealImageEstimate.fat;
+        } else {
+            const servings = parseInt(document.getElementById('detail-servings').value, 10) || 1;
+            const ingredientRows = Array.from(document.querySelectorAll('.ingredient-row'));
+            let totalGrams = 0;
+            ingredientRows.forEach(row => {
+                const grams = parseFloat(row.querySelector('.ingredient-grams').value) || 0;
+                totalGrams += grams;
+            });
+
+            const gramsPerServing = totalGrams * servings;
+            carbs = Math.round(gramsPerServing * 0.5);
+            protein = Math.round(gramsPerServing * 0.2);
+            fat = Math.round(gramsPerServing * 0.1);
+            calories = Math.round(carbs * 4 + protein * 4 + fat * 9);
+        }
+
+        const mealEntry = {
+            category: currentMealCategory,
+            name: food,
+            calories,
+            carbs,
+            protein,
+            fat,
+            date: new Date().toISOString()
+        };
+
+        mealState.push(mealEntry);
+        addMealLog(mealEntry);
+
+        currentMealImageEstimate = null;
+        renderMealCards();
+        updateDashboard();
+        closeMealDetail();
+    }
+
+    function calculateBurnedCalories() {
+        return loadTodayActivities().reduce((sum, activity) => sum + activity.calories, 0);
+    }
+
+    function getBMIStatus(bmi) {
+        if (bmi < 18.5) return 'Kurus';
+        if (bmi < 25) return 'Normal';
+        if (bmi < 30) return 'Kelebihan berat badan';
+        return 'Obesitas';
+    }
+
+    function getCalorieRecommendation(bmi) {
+        if (bmi < 18.5) {
+            return {
+                target: 2500,
+                label: 'Rencana penambahan berat',
+                advice: 'BMI Anda rendah. Tingkatkan asupan kalori dengan makanan kaya protein dan karbohidrat sehat.'
+            };
+        }
+        if (bmi < 25) {
+            return {
+                target: 2117,
+                label: 'Rencana pemeliharaan',
+                advice: 'BMI Anda berada dalam kisaran sehat. Pertahankan pola makan seimbang dan gaya hidup aktif.'
+            };
+        }
+        if (bmi < 30) {
+            return {
+                target: 1900,
+                label: 'Pengurangan kalori ringan',
+                advice: 'BMI Anda di atas normal. Kurangi porsi sedikit dan pilih protein tanpa lemak serta sayuran.'
+            };
+        }
+        return {
+            target: 1700,
+            label: 'Rencana penurunan berat',
+            advice: 'BMI Anda pada kategori obesitas. Kurangi kalori, batasi karbohidrat olahan, dan tingkatkan sayuran serta protein.'
+        };
+    }
+
+    function getObesityRiskScore(bmi) {
+        if (bmi < 18.5) return { score: 10, label: 'Risiko rendah', explanation: 'Risiko obesitas rendah karena BMI Anda di bawah kisaran normal.' };
+        if (bmi < 25) return { score: 20, label: 'Risiko rendah', explanation: 'BMI normal berarti risiko obesitas tetap rendah, pertahankan pola makan seimbang.' };
+        if (bmi < 30) return { score: 55, label: 'Risiko sedang', explanation: 'Anda berada di kategori overweight, perlu sedikit pengaturan diet dan olahraga.' };
+        return { score: 80, label: 'Risiko tinggi', explanation: 'BMI di kategori obesitas. Segera perbaiki pola makan dan tambahkan aktivitas fisik.' };
+    }
+
+    function getTodayNutritionSnapshot() {
+        const target = parseInt(localStorage.getItem('userCaloriesTarget'), 10) || 2117;
+        const eaten = mealState.reduce((sum, meal) => sum + meal.calories, 0);
+        const activityMinutes = loadTodayActivities().reduce((sum, activity) => sum + activity.minutes, 0);
+        const bmi = parseFloat(localStorage.getItem('userBMI')) || 22;
+        return { target, eaten, activityMinutes, bmi };
+    }
+
+    function calculateBehavioralRiskScore() {
+        const { target, eaten, activityMinutes, bmi } = getTodayNutritionSnapshot();
+        const bmiScore = bmi < 25 ? 12 : bmi < 30 ? 28 : 40;
+        const calorieRatio = target ? eaten / target : 0;
+        const calorieScore = calorieRatio <= 0.85 ? 10 : calorieRatio <= 1 ? 18 : calorieRatio <= 1.2 ? 28 : 35;
+        const sedentaryScore = activityMinutes >= 45 ? 5 : activityMinutes >= 30 ? 12 : activityMinutes >= 15 ? 20 : 25;
+        const score = Math.min(100, Math.round(bmiScore + calorieScore + sedentaryScore));
+        let label = 'Risiko rendah';
+        if (score > 70) label = 'Risiko tinggi';
+        else if (score > 40) label = 'Risiko sedang';
+        return { score, label, bmiScore, calorieScore, sedentaryScore };
+    }
+
+    function loadRiskHistory() {
+        return JSON.parse(localStorage.getItem('userRiskHistory') || '{}');
+    }
+
+    function saveRiskHistory(history) {
+        localStorage.setItem('userRiskHistory', JSON.stringify(history));
+    }
+
+    function countConsecutiveHighRiskDays(history) {
+        let count = 0;
+        const date = new Date();
+        for (let i = 0; i < 7; i++) {
+            const key = date.toISOString().slice(0, 10);
+            if (history[key] && history[key].score > 70) {
+                count++;
+                date.setDate(date.getDate() - 1);
+            } else {
+                break;
+            }
+        }
+        return count;
+    }
+
+    function updateEarlyWarningPanel() {
+        const risk = calculateBehavioralRiskScore();
+        const history = loadRiskHistory();
+        history[getTodayDate()] = { score: risk.score, label: risk.label };
+        saveRiskHistory(history);
+
+        const highRiskDays = countConsecutiveHighRiskDays(history);
+        const scoreNumber = document.getElementById('risk-score-number');
+        const scoreFill = document.getElementById('risk-score-fill');
+        const warningTitle = document.getElementById('early-warning-title');
+        const warningMessage = document.getElementById('early-warning-message');
+
+        scoreNumber.textContent = risk.score;
+        scoreFill.style.width = `${risk.score}%`;
+        scoreFill.className = `risk-score-fill ${risk.score > 70 ? 'danger' : risk.score > 40 ? 'warning' : 'safe'}`;
+        warningTitle.textContent = `${risk.label} (${highRiskDays} hari tinggi berturut-turut)`;
+
+        if (highRiskDays >= 3) {
+            warningMessage.textContent = 'Peringatan dini: skor risiko tinggi bertahan 3 hari. Kurangi minuman manis, pilih porsi lebih kecil, dan pertimbangkan konsultasi gizi.';
+        } else if (risk.score > 70) {
+            warningMessage.textContent = 'Risiko hari ini tinggi. Prioritaskan jalan cepat 30 menit dan pilih makanan tinggi protein/serat pada makan berikutnya.';
+        } else if (risk.score > 40) {
+            warningMessage.textContent = 'Risiko sedang. Tambahkan aktivitas ringan dan jaga kalori agar tidak melewati target harian.';
+        } else {
+            warningMessage.textContent = 'Risiko rendah. Pertahankan pola makan seimbang dan aktivitas fisik harian.';
+        }
+
+        localStorage.setItem('userObesityScore', risk.score);
+        localStorage.setItem('userObesityRiskLabel', risk.label);
+        localStorage.setItem('userObesityRiskExplanation', warningMessage.textContent);
+        document.getElementById('dashboard-risk-label').textContent = risk.label;
+        document.getElementById('risk-details').textContent = warningMessage.textContent;
+        document.getElementById('profile-obesity-score').textContent = risk.score;
+        document.getElementById('profile-obesity-risk').textContent = risk.label;
+        updateProfileInnovationStats();
+    }
+
+    function generateBehaviorCoach(forceNew = true) {
+        const coachCard = document.getElementById('coach-card');
+        const coachMessage = document.getElementById('coach-message');
+        if (!coachMessage) return;
+        if (localStorage.getItem(`coachDone-${getTodayDate()}`) === '1') {
+            if (coachCard) coachCard.style.display = 'none';
+            return;
+        }
+        if (coachCard) coachCard.style.display = 'block';
+
+        const { eaten, target, activityMinutes, bmi } = getTodayNutritionSnapshot();
+        const messages = [
+            `Fokus hari ini: cukup tambah 15 menit jalan kaki setelah makan. Langkah kecil lebih mudah dipertahankan daripada perubahan ekstrem.`,
+            `Kalori kamu ${eaten}/${target} kkal. Sisakan ruang untuk pilihan tinggi protein dan sayur agar kenyang lebih lama.`,
+            `BMI kamu ${bmi.toFixed(1)}. Target hari ini bukan sempurna, tapi membuat satu keputusan yang lebih sehat dari kemarin.`,
+            `Aktivitas tercatat ${activityMinutes} menit. Kalau masih rendah, mulai dari naik tangga atau jalan santai 10 menit.`,
+            `Coba ganti minuman manis dengan air putih di satu waktu makan. Ini mendukung target penurunan konsumsi gula 20% dalam 6 bulan.`,
+            `Pilih satu porsi sayur di makan berikutnya. Tubuh kamu tidak butuh perubahan besar sekaligus, cukup arah yang benar.`,
+            `Kalau ingin ngemil, ambil buah atau yogurt lebih dulu. Kamu tetap bisa menikmati hari tanpa keluar jauh dari target.`,
+            `Minum air putih sebelum makan berikutnya bisa membantu mengontrol porsi. Sederhana, tapi efeknya terasa.`,
+            `Berjalan 10 menit setelah makan adalah investasi kecil untuk energi, pencernaan, dan target BMI kamu.`,
+            `Hari ini cukup menang satu kebiasaan sehat. Satu keputusan baik tetap dihitung sebagai progres.`,
+            `Kalau kalori mulai mendekati target, fokus ke makanan tinggi protein agar kenyang lebih lama.`,
+            `Tidak perlu sempurna. Catat makananmu, bergerak sebentar, lalu lanjutkan hari dengan lebih sadar.`
+        ];
+        const todayKey = `coachMessage-${getTodayDate()}`;
+        let index = parseInt(localStorage.getItem(todayKey), 10);
+        if (forceNew || isNaN(index)) {
+            index = isNaN(index)
+                ? (new Date().getDate() + mealState.length + activityMinutes) % messages.length
+                : (index + 1) % messages.length;
+            localStorage.setItem(todayKey, index);
+        }
+        coachMessage.textContent = messages[index];
+    }
+
+    function markCoachActionDone() {
+        const coachCard = document.getElementById('coach-card');
+        const coachMessage = document.getElementById('coach-message');
+        const closingMessages = [
+            'Terima kasih sudah semangat untuk hari ini.',
+            'Mantap, aksi sehat hari ini sudah tercatat. Terima kasih sudah berusaha.',
+            'Keren, kamu sudah melakukan satu langkah baik hari ini.',
+            'Terima kasih sudah konsisten. Istirahat sebentar, besok lanjut lagi.'
+        ];
+        const current = parseInt(localStorage.getItem('coachActionsDone') || '0', 10);
+        localStorage.setItem('coachActionsDone', current + 1);
+        localStorage.setItem(`coachDone-${getTodayDate()}`, '1');
+        updateProfileInnovationStats();
+        if (coachMessage) {
+            coachMessage.textContent = closingMessages[current % closingMessages.length];
+        }
+        setTimeout(function () {
+            if (coachCard) coachCard.style.display = 'none';
+        }, 1800);
+    }
+
+    function updateProfileInnovationStats() {
+        const history = loadRiskHistory();
+        const highRiskDays = Object.values(history).filter(item => item.score > 70).length;
+        const coachActions = localStorage.getItem('coachActionsDone') || '0';
+        const highRiskElement = document.getElementById('profile-high-risk-days');
+        const coachElement = document.getElementById('profile-coach-actions');
+        if (highRiskElement) highRiskElement.textContent = `${highRiskDays} hari`;
+        if (coachElement) coachElement.textContent = `${coachActions} kali`;
+    }
+
+    function updateDashboardSummaryPanel() {
+        const target = localStorage.getItem('userCaloriesTarget') || '2117';
+        const recommendation = localStorage.getItem('userDietPlan') || 'Rencana pemeliharaan';
+        const riskLabel = localStorage.getItem('userObesityRiskLabel') || '-';
+        const height = localStorage.getItem('userHeight') || '170';
+        const weight = localStorage.getItem('userWeight') || '56';
+        const riskExplanation = localStorage.getItem('userObesityRiskExplanation') || 'Klik untuk melihat penjelasan risiko.';
+
+        document.getElementById('dashboard-target').textContent = `${target} kkal`;
+        document.getElementById('dashboard-recommendation').textContent = recommendation;
+        document.getElementById('dashboard-risk-label').textContent = riskLabel;
+        document.getElementById('dashboard-height').value = height;
+        document.getElementById('dashboard-weight').value = weight;
+        document.getElementById('risk-details').textContent = riskExplanation;
+    }
+
+    function updateSixMonthImpactTargets() {
+        const height = parseFloat(localStorage.getItem('userHeight')) || 170;
+        const weight = parseFloat(localStorage.getItem('userWeight')) || 56;
+        const bmi = parseFloat(localStorage.getItem('userBMI')) || (weight / ((height / 100) ** 2));
+        const heightMeters = height / 100;
+        const fivePercentWeight = Math.max(1, weight * 0.05);
+        const targetWeight = Math.max(30, weight - fivePercentWeight);
+        const healthyWeightMax = 24.9 * (heightMeters ** 2);
+        const healthyWeightMin = 18.5 * (heightMeters ** 2);
+
+        const sugarValue = document.getElementById('impact-sugar-value');
+        const sugarLabel = document.getElementById('impact-sugar-label');
+        const activityValue = document.getElementById('impact-activity-value');
+        const activityLabel = document.getElementById('impact-activity-label');
+        const bmiValue = document.getElementById('impact-bmi-value');
+        const bmiLabel = document.getElementById('impact-bmi-label');
+
+        if (!sugarValue || !sugarLabel || !activityValue || !activityLabel || !bmiValue || !bmiLabel) return;
+
+        sugarValue.textContent = '-20%';
+        sugarLabel.textContent = `Kurangi gula dan makanan tinggi kalori dari pola makan berat ${weight.toFixed(0)} kg`;
+
+        if (bmi >= 30) {
+            activityValue.textContent = '210 menit';
+            activityLabel.textContent = 'Target aktivitas fisik/minggu, naik 30% bertahap';
+            bmiValue.textContent = `-${fivePercentWeight.toFixed(1)} kg`;
+            bmiLabel.textContent = `Target berat 6 bulan: ${targetWeight.toFixed(1)} kg, mendekati batas sehat ${healthyWeightMax.toFixed(1)} kg`;
+        } else if (bmi >= 25) {
+            activityValue.textContent = '180 menit';
+            activityLabel.textContent = 'Target aktivitas fisik/minggu, naik 30% bertahap';
+            bmiValue.textContent = `-${fivePercentWeight.toFixed(1)} kg`;
+            bmiLabel.textContent = `Setara penurunan IMT 5%, target berat ${targetWeight.toFixed(1)} kg`;
+        } else if (bmi < 18.5) {
+            const gainTarget = Math.max(1, healthyWeightMin - weight);
+            activityValue.textContent = '120 menit';
+            activityLabel.textContent = 'Aktivitas ringan/minggu untuk menjaga kebugaran';
+            bmiValue.textContent = `+${gainTarget.toFixed(1)} kg`;
+            bmiLabel.textContent = `Target naik sehat menuju minimal ${healthyWeightMin.toFixed(1)} kg`;
+        } else {
+            activityValue.textContent = '150 menit';
+            activityLabel.textContent = 'Pertahankan aktivitas fisik mingguan';
+            bmiValue.textContent = `${weight.toFixed(1)} kg`;
+            bmiLabel.textContent = `Pertahankan berat sehat pada BMI ${bmi.toFixed(1)}`;
+        }
+    }
+
+    function handleProfileFieldChange() {
+        const heightInput = document.getElementById('dashboard-height');
+        const weightInput = document.getElementById('dashboard-weight');
+        const height = parseFloat(heightInput.value) || 0;
+        const weight = parseFloat(weightInput.value) || 0;
+        if (!height || !weight) return;
+
+        localStorage.setItem('userHeight', height);
+        localStorage.setItem('userWeight', weight);
+
+        const bmi = weight / ((height / 100) ** 2);
+        const status = getBMIStatus(bmi);
+        const recommendation = getCalorieRecommendation(bmi);
+        const risk = getObesityRiskScore(bmi);
+
+        localStorage.setItem('userBMI', bmi.toFixed(1));
+        localStorage.setItem('userBMIStatus', status);
+        localStorage.setItem('userObesityScore', risk.score);
+        localStorage.setItem('userObesityRiskLabel', risk.label);
+        localStorage.setItem('userObesityRiskExplanation', risk.explanation);
+        localStorage.setItem('userCaloriesTarget', recommendation.target);
+        localStorage.setItem('userCalorieAdvice', recommendation.advice);
+        localStorage.setItem('userDietPlan', recommendation.label);
+
+        document.getElementById('profile-bmi').textContent = bmi.toFixed(1);
+        document.getElementById('profile-height').textContent = `${height} cm`;
+        document.getElementById('profile-weight').textContent = `${weight} kg`;
+        document.getElementById('profile-target').textContent = `${recommendation.target} kkal`;
+        document.getElementById('profile-recommendation').textContent = recommendation.label;
+        document.getElementById('dashboard-risk-label').textContent = risk.label;
+        document.getElementById('risk-details').textContent = risk.explanation;
+        document.getElementById('dashboard-target').textContent = `${recommendation.target} kkal`;
+        document.getElementById('dashboard-recommendation').textContent = recommendation.label;
+        updateDashboard();
+    }
+
+    function toggleRiskExplanation() {
+        const details = document.getElementById('risk-details');
+        details.classList.toggle('active');
+    }
+
+    function loadRecommendedActivityStatus() {
+        return JSON.parse(localStorage.getItem('userRecommendedActivities') || '{}');
+    }
+
+    function saveRecommendedActivityStatus(status) {
+        localStorage.setItem('userRecommendedActivities', JSON.stringify(status));
+    }
+
+    function getTodayRecommendedActivityStatus() {
+        const allStatus = loadRecommendedActivityStatus();
+        return allStatus[getTodayDate()] || {};
+    }
+
+    function setTodayRecommendedActivityStatus(activityId, done) {
+        const allStatus = loadRecommendedActivityStatus();
+        const today = getTodayDate();
+        allStatus[today] = allStatus[today] || {};
+        allStatus[today][activityId] = done;
+        saveRecommendedActivityStatus(allStatus);
+    }
+
+    function updateRecommendedActivityLog(activityId, activityData, done) {
+        const activities = loadUserActivities();
+        if (done) {
+            const alreadySaved = activities.some(item => item.activityId === activityId && item.recommended);
+            if (!alreadySaved) {
+                activities.push({
+                    activityId,
+                    name: activityData.label,
+                    minutes: activityData.minutes,
+                    calories: activityData.cals,
+                    date: new Date().toISOString(),
+                    recommended: true
+                });
+            }
+        } else {
+            const updated = activities.filter(item => !(item.activityId === activityId && item.recommended));
+            saveUserActivities(updated);
+            return;
+        }
+        saveUserActivities(activities);
+    }
+
+    function renderActivityRecommendations() {
+        const recList = document.getElementById('activity-recommendation-list');
+        const bmi = parseFloat(localStorage.getItem('userBMI')) || 22;
+        const todayStatus = getTodayRecommendedActivityStatus();
+        const activityOptions = [
+            { id: 'casual_walk', label: 'Jalan santai 15 menit', cals: 60, minutes: 15, condition: bmi >= 18.5 },
+            { id: 'brisk_walk', label: 'Jalan cepat 30 menit', cals: 150, minutes: 30, condition: bmi >= 25 },
+            { id: 'power_walk', label: 'Jalan cepat 45 menit', cals: 220, minutes: 45, condition: bmi >= 25 },
+            { id: 'light_yoga', label: 'Yoga ringan 30 menit', cals: 110, minutes: 30, condition: bmi < 30 },
+            { id: 'cycling', label: 'Bersepeda 20 menit', cals: 120, minutes: 20, condition: true }
+        ];
+        recList.innerHTML = activityOptions
+            .filter(item => item.condition)
+            .map(item => {
+                const checked = todayStatus[item.id] ? 'checked' : '';
+                return `
+                    <label class="activity-pill">
+                        <span>${item.label} • ~${item.cals} kkal</span>
+                        <input type="checkbox" onchange="toggleRecommendedActivity('${item.id}')" ${checked} />
+                    </label>
+                `;
+            })
+            .join('');
+    }
+
+    function toggleRecommendedActivity(activityId) {
+        const bmi = parseFloat(localStorage.getItem('userBMI')) || 22;
+        const activityOptions = [
+            { id: 'casual_walk', label: 'Jalan santai 15 menit', cals: 60, minutes: 15, condition: bmi >= 18.5 },
+            { id: 'brisk_walk', label: 'Jalan cepat 30 menit', cals: 150, minutes: 30, condition: bmi >= 25 },
+            { id: 'power_walk', label: 'Jalan cepat 45 menit', cals: 220, minutes: 45, condition: bmi >= 25 },
+            { id: 'light_yoga', label: 'Yoga ringan 30 menit', cals: 110, minutes: 30, condition: bmi < 30 },
+            { id: 'cycling', label: 'Bersepeda 20 menit', cals: 120, minutes: 20, condition: true }
+        ];
+        const selectedActivity = activityOptions.find(item => item.id === activityId);
+        if (!selectedActivity) return;
+
+        const status = getTodayRecommendedActivityStatus();
+        const done = !status[activityId];
+        setTodayRecommendedActivityStatus(activityId, done);
+        updateRecommendedActivityLog(activityId, selectedActivity, done);
+        updateDashboard();
+    }
+
+    function loadUserActivities() {
+        return JSON.parse(localStorage.getItem('userActivities') || '[]');
+    }
+
+    function saveUserActivities(activities) {
+        localStorage.setItem('userActivities', JSON.stringify(activities));
+    }
+
+    function renderActivityLog() {
+        const logContainer = document.getElementById('activity-log');
+        const todayActivities = loadTodayActivities();
+        if (!todayActivities.length) {
+            logContainer.innerHTML = '<div class="empty-text">Belum ada aktivitas yang dicatat hari ini.</div>';
+            return;
+        }
+        logContainer.innerHTML = todayActivities.map(item => `
+            <div class="activity-row">
+                <div><strong>${item.name}</strong></div>
+                <div>${item.minutes} menit • ${item.calories} kkal</div>
+            </div>
+        `).join('');
+    }
+
+    function renderHistory() {
+        const historyList = document.getElementById('history-list');
+        const today = getTodayDate();
+        const mealHistory = loadAllMealLogs().filter(item => item.archived || item.date.slice(0, 10) !== today);
+        const activityHistory = loadUserActivities().filter(item => item.archived || item.date.slice(0, 10) !== today);
+        const historyItems = [
+            ...mealHistory.map(item => ({
+                type: 'meal',
+                name: item.name,
+                detail: `${item.category} • ${item.calories} kkal`,
+                date: item.date
+            })),
+            ...activityHistory.map(item => ({
+                type: 'activity',
+                name: item.name,
+                detail: `${item.minutes} menit • ${item.calories} kkal`,
+                date: item.date
+            }))
+        ].sort((a, b) => b.date.localeCompare(a.date));
+
+        if (!historyItems.length) {
+            historyList.innerHTML = '<div class="empty-text">Belum ada riwayat aktivitas atau makanan.</div>';
+            return;
+        }
+
+        historyList.innerHTML = historyItems.map(item => `
+            <div class="history-card">
+                <div><strong>${item.name}</strong></div>
+                <div>${formatHistoryDate(item.date)}</div>
+                <div>${item.detail}</div>
+            </div>
+        `).join('');
+    }
+
+    function updateAnalysis() {
+        const analysisContent = document.getElementById('analysis-content');
+        if (mealState.length === 0) {
+            analysisContent.innerHTML = '<p style="color:#666;">Masukkan makanan terlebih dahulu untuk melihat analisis nutrisi yang disesuaikan.</p>';
+            return;
+        }
+
+        const eaten = mealState.reduce((sum, meal) => sum + meal.calories, 0);
+        const carbs = mealState.reduce((sum, meal) => sum + meal.carbs, 0);
+        const protein = mealState.reduce((sum, meal) => sum + meal.protein, 0);
+        const fat = mealState.reduce((sum, meal) => sum + meal.fat, 0);
+        const targetCalories = 2117;
+
+        const messages = [];
+        const proteinTarget = 103;
+        const carbsTarget = 258;
+        const fatTarget = 68;
+
+        if (protein < proteinTarget) {
+            messages.push(`<li><strong>Protein rendah:</strong> Anda baru mencapai ${protein}g dari target ${proteinTarget}g. Tambahkan makan sumber protein seperti daging, telur, atau kacang-kacangan.</li>`);
+        } else {
+            messages.push(`<li><strong>Protein cukup:</strong> Asupan protein Anda sudah baik pada ${protein}g.</li>`);
+        }
+
+        if (carbs > carbsTarget) {
+            messages.push(`<li><strong>Karbohidrat berlebih:</strong> Anda sudah mengonsumsi ${carbs}g karbohidrat, di atas target ${carbsTarget}g. Pilih karbohidrat kompleks dan batasi porsi nasi atau roti putih.</li>`);
+        } else {
+            messages.push(`<li><strong>Karbohidrat terkontrol:</strong> Saat ini asupan karbohidrat Anda ${carbs}g, masih di bawah target ${carbsTarget}g.</li>`);
+        }
+
+        if (fat > fatTarget) {
+            messages.push(`<li><strong>Lemak tinggi:</strong> Anda mengonsumsi ${fat}g lemak, melebihi target ${fatTarget}g. Kurangi makanan berlemak tinggi dan pilih sumber lemak sehat.</li>`);
+        } else {
+            messages.push(`<li><strong>Lemak aman:</strong> Asupan lemak Anda ${fat}g, berada dalam batas yang wajar.</li>`);
+        }
+
+        if (eaten > targetCalories) {
+            messages.push(`<li><strong>Kalori melebihi target:</strong> Total kalori Anda ${eaten} kkal, melampaui target ${targetCalories} kkal. Perhatikan porsi untuk menyeimbangkan energi.</li>`);
+        } else {
+            messages.push(`<li><strong>Kalori dalam batas:</strong> Total kalori Anda ${eaten} kkal, masih di bawah target ${targetCalories} kkal.</li>`);
+        }
+
+        const latestMeal = mealState[mealState.length - 1];
+        messages.push(`<li><strong>Input terakhir:</strong> ${latestMeal.name} di ${latestMeal.category} dengan ${latestMeal.calories} kkal, ${latestMeal.carbs}g karbohidrat, ${latestMeal.protein}g protein, dan ${latestMeal.fat}g lemak.</li>`);
+
+        analysisContent.innerHTML = `<ul>${messages.join('')}</ul>`;
+    }
+
+    function loadUserProfile() {
+        const sessionActive = localStorage.getItem('sessionActive');
+        const email = localStorage.getItem('userEmail');
+        const name = localStorage.getItem('userName');
+        const bmi = localStorage.getItem('userBMI') || '0.0';
+        const height = localStorage.getItem('userHeight') || '0';
+        const weight = localStorage.getItem('userWeight') || '0';
+        const target = localStorage.getItem('userCaloriesTarget') || '2117';
+        const recommendation = localStorage.getItem('userDietPlan') || 'Maintain';
+        const obesityRisk = localStorage.getItem('userObesityRiskLabel') || '-';
+        const obesityScore = localStorage.getItem('userObesityScore') || '-';
+
+        if (sessionActive !== '1') {
+            window.location.href = 'index.html';
+            return;
+        }
+
+        if (!localStorage.getItem('userBMI')) {
+            window.location.href = 'index.html';
+            return;
+        }
+
+        document.getElementById('profile-name').textContent = name || 'Pengguna';
+        document.getElementById('profile-email').textContent = email;
+        document.getElementById('profile-bmi').textContent = bmi;
+        document.getElementById('profile-height').textContent = `${height} cm`;
+        document.getElementById('profile-weight').textContent = `${weight} kg`;
+        document.getElementById('profile-target').textContent = `${target} kkal`;
+        document.getElementById('profile-recommendation').textContent = recommendation;
+        document.getElementById('profile-obesity-risk').textContent = obesityRisk;
+        document.getElementById('profile-obesity-score').textContent = obesityScore;
+        updateProfileInnovationStats();
+    }
+
+    window.addEventListener('load', function () {
+        document.getElementById('bottom-nav-bar').style.display = 'flex';
+        mealState = loadMealState();
+        renderMealCards();
+        updateDashboard();
+        loadUserProfile();
+    });
+
+    window.addEventListener('beforeunload', function (event) {
+        if (!hasTodayProgress()) return;
+        const confirmationMessage = 'Anda memiliki progres Hari Ini yang belum disimpan sebagai riwayat. Tutup tab untuk menyimpan otomatis, atau tetap di halaman untuk memutuskan.';
+        event.preventDefault();
+        event.returnValue = confirmationMessage;
+        return confirmationMessage;
+    });
+
+    window.addEventListener('unload', function () {
+        if (!hasTodayProgress() || !shouldAutoArchiveOnExit) return;
+        archiveTodayProgress();
+    });
+</script>
+</body>
+</html>
